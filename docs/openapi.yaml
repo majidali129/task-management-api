@@ -1,0 +1,188 @@
+openapi: 3.0.0
+info:
+  title: Task Management API
+  version: 1.0.0
+  description: NestJS Task Management REST API with JWT Authentication and Mongoose.
+servers:
+  - url: 'http://localhost:3000'
+    description: Local Development Server
+paths:
+  /auth/signup:
+    post:
+      summary: Register a new user
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - email
+                - password
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  minLength: 6
+            example:
+              name: Ali
+              email: ali@test.com
+              password: SecurePassword123
+      responses:
+        201:
+          description: User created successfully.
+        400:
+          description: Bad request / Validation failed.
+
+  /auth/login:
+    post:
+      summary: Authenticate user and return JWT
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+            example:
+              email: ali@test.com
+              password: SecurePassword123
+      responses:
+        201:
+          description: Login successful. Returns JWT token.
+        401:
+          description: Invalid email or password.
+
+  /tasks:
+    get:
+      summary: Get all tasks for the logged-in user
+      tags:
+        - Tasks
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: List of user tasks retrieved successfully.
+        401:
+          description: Unauthorized access.
+          
+    post:
+      summary: Create a new task
+      tags:
+        - Tasks
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+            example:
+              title: Learn NestJS
+              description: Practice Guards and DTOs
+      responses:
+        201:
+          description: Task created successfully
+        400:
+          description: Validation error.
+        401:
+          description: Unauthorized access.
+
+  /tasks/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: The unique hex ID of the task resource (Mongoose ObjectId)
+        schema:
+          type: string
+    get:
+      summary: Get details of a specific task
+      tags:
+        - Tasks
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: Task fetched successfully
+        401:
+          description: Unauthorized access.
+        404:
+          description: Task not found
+
+    patch:
+      summary: Update an existing task
+      tags:
+        - Tasks
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+                status:
+                  type: string
+                  enum: [pending, in-progress, completed]
+            example:
+              title: Learn NestJS Deeply
+              status: in-progress
+      responses:
+        200:
+          description: Task updated successfully.
+        401:
+          description: Unauthorized access.
+        404:
+          description: Task not found or have been deleted.
+
+    delete:
+      summary: Delete a specific task
+      tags:
+        - Tasks
+      security:
+        - BearerAuth: []
+      responses:
+        200:
+          description: Task deleted successfully.
+        401:
+          description: Unauthorized access.
+        404:
+          description: Task not found or have already been deleted.
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
