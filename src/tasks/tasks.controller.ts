@@ -48,10 +48,3 @@ export class TasksController {
     return this.tasksService.delete(id, req.user.userId);
   }
 }
-
-/*
-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2YTBhZjQ1MGIxMGJjOGU2YWRmYWM2YTYiLCJlbWFpbCI6InRlc3QtdXNlcjJAZ21haWwuY29tIiwiaWF0IjoxNzc5MTAzNDM3LCJleHAiOjE3NzkxMTQyMzd9.iVYim1masTDRVfP-4lsdkhLnZNymr275uda1Qfe3QuM
-*/
-/*
-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2YTBhZjQ1MGIxMGJjOGU2YWRmYWM2YTYiLCJlbWFpbCI6InRlc3QtdXNlcjJAZ21haWwuY29tIiwiaWF0IjoxNzc5MTAyOTAxLCJleHAiOjE3NzkxMTM3MDF9.RLyHuDr_TBU9gSDIMH6O4h-S8NkzT59SGSaXjJwXITo
-*/
