@@ -17,9 +17,6 @@ export class User {
     minlength: [6, 'Password must be at least 6 characters long'],
   })
   password: string;
-
-  @Prop()
-  token: string;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

@@ -6,5 +6,6 @@ export class CreateTaskDto {
   readonly title: string;
 
   @IsString()
+  @IsNotEmpty()
   readonly description: string;
 }

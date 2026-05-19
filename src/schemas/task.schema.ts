@@ -3,7 +3,17 @@ import { HydratedDocument, Types } from 'mongoose';
 
 export type TaskDocument = HydratedDocument<Task>;
 
-@Schema({ timestamps: true })
+@Schema({
+  timestamps: true,
+  toJSON: {
+    virtuals: true,
+    transform: (_doc, ret: Record<string, any>) => {
+      delete ret.__v;
+      delete ret._id;
+      return ret;
+    },
+  },
+})
 export class Task {
   @Prop({ required: true })
   title: string;
