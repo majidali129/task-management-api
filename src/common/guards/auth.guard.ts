@@ -1,23 +1,29 @@
 import {
   CanActivate,
   ExecutionContext,
+  HttpException,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import jwt, { JsonWebTokenError } from 'jsonwebtoken';
+import { JsonWebTokenError } from 'jsonwebtoken';
 import type { Request } from 'express';
 import 'dotenv/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { User } from 'src/schemas/user.schema';
 import { Model } from 'mongoose';
+import { UsersService } from 'src/users/users.service';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
-  constructor(@InjectModel(User.name) private userModel: Model<User>) {}
+  constructor(
+    @InjectModel(User.name) private userModel: Model<User>,
+    private readonly userService: UsersService,
+    private readonly jwtService: JwtService,
+  ) {}
   async canActivate(ctx: ExecutionContext): Promise<boolean> {
     const req: Request = ctx.switchToHttp().getRequest();
-    const authHeader = req.headers.authorization;
-    const token = authHeader?.replace('Bearer ', '').trim();
+    const token = this.extractTokenFromHeader(req);
     if (!token) {
       throw new UnauthorizedException(
         'Missing or invalid authorization header',
@@ -25,11 +31,9 @@ export class AuthGuard implements CanActivate {
     }
 
     try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET!) as {
-        sub: string;
-        email: string;
-      };
-      const user = await this.userModel.findById(decoded.sub);
+      const payload: { sub: string } = await this.jwtService.verifyAsync(token);
+
+      const user = await this.userService.getUserById(payload.sub);
 
       if (!user) {
         throw new UnauthorizedException(
@@ -37,13 +41,21 @@ export class AuthGuard implements CanActivate {
         );
       }
 
-      req.user = { userId: decoded.sub, email: decoded.email };
+      req.user = { userId: payload.sub };
       return true;
     } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
       if (error instanceof JsonWebTokenError) {
         throw new UnauthorizedException(error.message ?? 'Invalid token');
       }
       throw new UnauthorizedException('Authentication failed');
     }
+  }
+
+  extractTokenFromHeader(req: Request) {
+    const authHeader = req.headers.authorization;
+    return authHeader?.replace('Bearer ', '').trim();
   }
 }

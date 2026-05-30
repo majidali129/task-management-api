@@ -9,11 +9,11 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { CreateTaskDto } from 'src/schemas/create-task.dto';
-import { UpdateTaskDto } from 'src/schemas/update-task.dto';
+import { CreateTaskDto } from 'src/common/dtos/create-task.dto';
 import { TasksService } from './tasks.service';
-import { AuthGuard } from 'src/guards/auth.guard';
+import { AuthGuard } from 'src/common/guards/auth.guard';
 import type { Request } from 'express';
+import { UpdateTaskDto } from 'src/common/dtos/update-task.dto';
 
 @UseGuards(AuthGuard)
 @Controller('tasks')

@@ -1,37 +1,29 @@
-import {
-  BadRequestException,
-  HttpException,
-  HttpStatus,
-  Injectable,
-} from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { CreateUserDto } from 'src/schemas/create-user.dto';
-import { LoginUserDto } from 'src/schemas/login-user.dto';
+import { CreateUserDto } from 'src/common/dtos/create-user.dto';
+import { LoginUserDto } from 'src/common/dtos/login-user.dto';
 import { User } from 'src/schemas/user.schema';
-import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import 'dotenv/config';
+import { UsersService } from 'src/users/users.service';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {
-  constructor(@InjectModel(User.name) private userModel: Model<User>) {}
+  constructor(
+    @InjectModel(User.name) private userModel: Model<User>,
+    private readonly userService: UsersService,
+    private jwtService: JwtService,
+  ) {}
 
-  async signUp(userData: CreateUserDto): Promise<{
-    id: string;
+  async signUp(createUserDto: CreateUserDto): Promise<{
     message: string;
     status: HttpStatus;
   }> {
-    const existingUser = await this.userModel
-      .findOne({ email: userData.email })
-      .exec();
+    await this.userService.create(createUserDto);
 
-    if (existingUser) {
-      throw new BadRequestException('User with credentials already exits.');
-    }
-    const createdUser = await this.userModel.create(userData);
     return {
-      id: createdUser._id.toString(),
       message: 'User created successfully',
       status: HttpStatus.CREATED,
     };
@@ -39,10 +31,8 @@ export class AuthService {
 
   async signIn(
     loginData: LoginUserDto,
-  ): Promise<{ message: string; userId: string; token: string }> {
-    const user = await this.userModel
-      .findOne({ email: loginData.email })
-      .exec();
+  ): Promise<{ message: string; token: string }> {
+    const user = await this.userService.getUserByEmail(loginData.email);
 
     if (!user) {
       throw new HttpException(
@@ -62,15 +52,14 @@ export class AuthService {
       );
     }
 
-    const token = await this.generateToken(user._id.toString(), user.email);
-    user.token = token;
+    const token = await this.generateToken(user._id.toString());
     await user.save({ validateBeforeSave: false });
 
-    return { message: 'Login successful', userId: user._id.toString(), token };
+    return { message: 'Login successful', token };
   }
 
-  async generateToken(userId: string, email: string): Promise<string> {
-    const payload = { sub: userId, email };
-    return jwt.sign(payload, process.env.JWT_SECRET!, { expiresIn: '3h' });
+  async generateToken(userId: string): Promise<string> {
+    const payload = { sub: userId };
+    return await this.jwtService.signAsync(payload);
   }
 }

@@ -35,13 +35,45 @@ JWT_SECRET=yourSecretKey
 ## Run the project
 
 ```bash
-pnpm run start
+pnpm run start:dev
 ```
 
-The API runs by default on `http://localhost:3000/api`.
+## Build the production bundle:
+
+```
+pnpm run build
+```
+
+## API Base URL
+
+When running locally, the API is available at:
+
+```
+http://localhost:3000
+```
+
+We can access resources at:
+
+```
+http://localhost:3000/tasks
+```
+
+For Authentication:
+
+```
+http://localhost:3000/auth/signup
+http://localhost:3000/auth/login
+```
+
+Swagger documentation is accessible at:
+
+```
+
+http://localhost:3000/api
+
+```
 
 ## Notes
 
 - The API uses Mongoose and requires `DB_URI` to connect to MongoDB.
 - JWT tokens expire after 3 hours.
-- Protected task routes are enforced by `src/guards/auth.guard.ts`.
